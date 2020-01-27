@@ -7,6 +7,10 @@ var logger = require('morgan');
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
 
+var appInsights = require('applicationinsights');
+appInsights.setup('8a40c9f1-8d3d-4635-8915-c0576b8138bc');
+appInsights.start();
+
 var app = express();
 
 // view engine setup
@@ -21,6 +25,11 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
+app.use('/problem', function()
+{
+  throw new Error("Oops!! Smething went wrong!!");
+}
+);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
@@ -33,6 +42,7 @@ app.use(function(err, req, res, next) {
   res.locals.message = err.message;
   res.locals.error = req.app.get('env') === 'development' ? err : {};
 
+appInsights.defaultClient.trackException({exception : err});
   // render the error page
   res.status(err.status || 500);
   res.render('error');
